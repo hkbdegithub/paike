@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Demo
@@ -428,7 +429,7 @@ namespace Demo
             {
                 ClearCourse(obj);
             }
-            if (obj is ListBox) return;
+            //if (obj is ListBox) return;
             for (var i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 ClearTimetables<T>(VisualTreeHelper.GetChild(obj, i));
@@ -446,7 +447,7 @@ namespace Demo
         }
 
         /// <summary>
-        /// 回复按钮
+        /// 恢复按钮至可按状态
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
@@ -457,10 +458,61 @@ namespace Demo
                 Button button = obj as Button;
                 button.IsEnabled = true;
             }
-            if (obj is ListBox) return;
+            //if (obj is ListBox) return;
             for (var i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 SendButtonEnable<T>(VisualTreeHelper.GetChild(obj, i));
+            }
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (ClassInfo ci in ClassInfoListBox.SelectedItems)
+            {
+                if (ci.Timetables == null) return;
+                Button b = null;
+                Label l = null;
+                foreach (Button button in ci.Timetables.Keys)
+                {
+                    foreach (Button pButton in MousePointList.Keys)
+                    {
+                        //if (p.X > 120 || p.X < 0 || p.Y > 80 || p.Y < 0) continue;
+                        if (button != pButton) continue;
+                        if (MousePointList[button].X > 120 || MousePointList[button].X < 0 || MousePointList[button].Y > 80 || MousePointList[button].Y < 0) continue;
+                        b = button;
+                        Grid g = button.Parent as Grid;
+                        l = g.Children[0] as Label;
+                        Console.WriteLine("Sucess");
+                        l.Content = "请添加课程";
+                        break;
+                    }
+                }
+
+                if (b != null) 
+                {
+                    b.IsEnabled = true;
+                    ci.Timetables.Remove(b);
+                }
+            }
+        }
+
+        Dictionary<Button, Point> MousePointList = null;
+        private void DazzleWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            MousePointList = new Dictionary<Button, Point>();
+            foreach (ClassInfo ci in ClassInfoListBox.SelectedItems)
+            {
+                if (ci.Timetables == null) continue;
+                foreach (Button button in ci.Timetables.Keys)
+                {
+                    Grid g = button.Parent as Grid;
+                    Point p = Mouse.GetPosition(g);
+                    if (!MousePointList.ContainsValue(p))
+                    {
+                        MousePointList.Add(button, p);
+                        Console.WriteLine(p);
+                    }                    
+                }
             }
         }
         ///// <summary>
